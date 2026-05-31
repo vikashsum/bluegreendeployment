@@ -152,5 +152,4 @@ EOF
             echo "❌ Pipeline FAILED"
         }
     }
-}
-}
+
