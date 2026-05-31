@@ -16,8 +16,9 @@ spec:
         version: green
     spec:
       containers:
-      - name: sample-app
-        image: YOUR_DOCKERHUB/sample-app:green
+       - name: sample-app
+         image: ${DOCKER_IMAGE}:${IMAGE_TAG}
+         imagePullPolicy: Always
         ports:
         - containerPort: 8080
 
