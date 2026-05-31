@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-green
+  namespace: production
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sample-app
+      version: green
+  template:
+    metadata:
+      labels:
+        app: sample-app
+        version: green
+    spec:
+      containers:
+      - name: sample-app
+        image: YOUR_DOCKERHUB/sample-app:green
+        ports:
+        - containerPort: 8080
