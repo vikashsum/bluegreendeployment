@@ -47,47 +47,24 @@ pipeline {
             }
         }
 
-        stage('Create EKS Cluster') {
-            steps {
-
-                withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'AWS-Creds']
-                ]) {
-
-                    sh '''
-                        if ! eksctl get cluster --name ${CLUSTER_NAME} --region ${AWS_REGION}; then
-                            eksctl create cluster \
-                              --name ${CLUSTER_NAME} \
-                              --region ${AWS_REGION} \
-                              --nodegroup-name workers \
-                              --node-type m7i-flex.large \
-                              --nodes 2 \
-                              --managed
-                        fi
-                        '''
-                }
-            }
-        }
+        
 
         stage('Configure kubectl') {
-            steps {
+           steps {
+              withCredentials([
+                [$class: 'AmazonWebServicesCredentialsBinding',
+                credentialsId: 'AWS-Creds']
+              ]) {
+                 sh '''
+                  aws eks update-kubeconfig \
+                    --region ap-south-1 \
+                    --name bluegreen-eks
 
-                withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-creds']
-                ]) {
-
-                    sh """
-                    aws eks update-kubeconfig \
-                    --region ${AWS_REGION} \
-                    --name ${CLUSTER_NAME}
-
-                    kubectl get nodes
-                    """
-                }
-            }
+                  kubectl get nodes
+                  '''
         }
+    }
+}
         stage('Verify Nodes') {
            steps {
               sh '''
