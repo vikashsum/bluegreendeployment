@@ -21,9 +21,9 @@ spec:
         ports:
         - containerPort: 8080
 
-      readinessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        readinessProbe:
+           httpGet:
+             path: /health
+             port: 8080
+           initialDelaySeconds: 5
+           periodSeconds: 5
