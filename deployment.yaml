@@ -19,9 +19,10 @@ spec:
 
     spec:
       containers:
-      - name: sample-app
-        image: yourdockerhubuser/sample-app:v1
-
+        - name: sample-app
+          image: ${DOCKER_IMAGE}:${IMAGE_TAG}
+          imagePullPolicy: Always
+          
         readinessProbe:
           httpGet:
             path: /health
