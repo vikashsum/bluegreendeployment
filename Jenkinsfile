@@ -6,8 +6,7 @@ pipeline {
         CLUSTER_NAME = "bluegreen-eks"
         NAMESPACE = "production"
 
-        DOCKER_IMAGE = "vikash3117/sample-app"
-        IMAGE_TAG = "${BUILD_NUMBER}"
+        image: ${DOCKER_IMAGE}:${IMAGE_TAG}
     }
 
     stages {
@@ -144,7 +143,7 @@ spec:
     spec:
       containers:
       - name: sample-app
-        image: vikash3117/sample-app:'"$BUILD_NUMBER"'
+        image: ${DOCKER_IMAGE}:${IMAGE_TAG}
 
         ports:
         - containerPort: 8080
