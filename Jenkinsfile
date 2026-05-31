@@ -170,19 +170,24 @@ EOF
         }
     }
 }
-        stage('Validate Deployment') {
+                stage('Validate Deployment') {
             steps {
-               withCredentials([
-                [$class: 'AmazonWebServicesCredentialsBinding',
-                  credentialsId: 'AWS-Creds']
-           ]) {
-                sh """
-                kubectl rollout status deployment/app-green -n ${NAMESPACE}
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'AWS-Creds']
+                ]) {
+                    sh """
+                    aws eks update-kubeconfig \
+                    --region ${AWS_REGION} \
+                    --name ${CLUSTER_NAME}
 
-                kubectl get pods -n ${NAMESPACE}
+                    kubectl rollout status deployment/app-green -n ${NAMESPACE}
 
-                kubectl get svc -n ${NAMESPACE}
-                """
+                    kubectl get pods -n ${NAMESPACE}
+
+                    kubectl get svc -n ${NAMESPACE}
+                    """
+                }
             }
         }
 
@@ -191,18 +196,23 @@ EOF
                 withCredentials([
                     [$class: 'AmazonWebServicesCredentialsBinding',
                      credentialsId: 'AWS-Creds']
-               ]) {
-                sh """
-                kubectl delete deployment app-blue \
-                -n ${NAMESPACE} \
-                --ignore-not-found=true
-                """
+                ]) {
+                    sh """
+                    aws eks update-kubeconfig \
+                    --region ${AWS_REGION} \
+                    --name ${CLUSTER_NAME}
+
+                    kubectl delete deployment app-blue \
+                    -n ${NAMESPACE} \
+                    --ignore-not-found=true
+                    """
+                }
             }
         }
+
     }
 
     post {
-
         success {
             echo "Blue-Green deployment completed successfully"
         }
@@ -211,5 +221,4 @@ EOF
             echo "Deployment failed"
         }
     }
-}
 }
