@@ -108,16 +108,24 @@ pipeline {
 }
 
         stage('Deploy Green Version') {
-            steps {
+           steps {
+             withCredentials([
+               [$class: 'AmazonWebServicesCredentialsBinding',
+                credentialsId: 'AWS-Creds']
+         ]) {
 
-                sh """
+             sh '''
+              aws eks update-kubeconfig \
+                --region ap-south-1 \
+                --name bluegreen-eks
+
 cat <<EOF | kubectl apply -f -
 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: app-green
-  namespace: ${NAMESPACE}
+  namespace: production
 
 spec:
   replicas: 2
@@ -136,7 +144,7 @@ spec:
     spec:
       containers:
       - name: sample-app
-        image: ${DOCKER_IMAGE}:${IMAGE_TAG}
+        image: vikash3117/sample-app:'"$BUILD_NUMBER"'
 
         ports:
         - containerPort: 8080
@@ -146,7 +154,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: sample-service
-  namespace: ${NAMESPACE}
+  namespace: production
 
 spec:
   selector:
@@ -158,13 +166,16 @@ spec:
     targetPort: 8080
 
 EOF
-                """
-            }
+            '''
         }
-
+    }
+}
         stage('Validate Deployment') {
             steps {
-
+               withCredentials([
+                [$class: 'AmazonWebServicesCredentialsBinding',
+                  credentialsId: 'AWS-Creds']
+           ]) {
                 sh """
                 kubectl rollout status deployment/app-green -n ${NAMESPACE}
 
@@ -177,7 +188,10 @@ EOF
 
         stage('Delete Blue Deployment') {
             steps {
-
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'AWS-Creds']
+               ]) {
                 sh """
                 kubectl delete deployment app-blue \
                 -n ${NAMESPACE} \
