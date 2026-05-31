@@ -66,19 +66,28 @@ pipeline {
     }
 }
         stage('Verify Nodes') {
-           steps {
-              sh '''
+            steps {
+              withCredentials([
+                 [$class: 'AmazonWebServicesCredentialsBinding',
+                  credentialsId: 'AWS-Creds']
+            ]) {
+                 sh '''
+                aws eks update-kubeconfig \
+                  --region ap-south-1 \
+                  --name bluegreen-eks
+
                  kubectl get nodes
 
                  NODE_COUNT=$(kubectl get nodes --no-headers | wc -l)
 
                  if [ "$NODE_COUNT" -lt 1 ]; then
                    echo "No worker nodes available"
-                    exit 1
+                   exit 1
                  fi
                  '''
-                 }
-         }
+        }
+    }
+}
 
         stage('Create Namespace') {
             steps {
