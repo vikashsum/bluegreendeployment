@@ -90,12 +90,22 @@ pipeline {
 }
 
         stage('Create Namespace') {
-            steps {
-                sh """
-                kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
-                """
-            }
+           steps {
+             withCredentials([
+               [$class: 'AmazonWebServicesCredentialsBinding',
+                credentialsId: 'AWS-Creds']
+           ]) {
+                sh '''
+                aws eks update-kubeconfig \
+                  --region ap-south-1 \
+                  --name bluegreen-eks
+
+                kubectl create namespace production \
+                --dry-run=client -o yaml | kubectl apply -f -
+                 '''
         }
+    }
+}
 
         stage('Deploy Green Version') {
             steps {
