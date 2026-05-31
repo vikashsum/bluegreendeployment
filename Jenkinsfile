@@ -2,12 +2,13 @@ pipeline {
     agent any
 
     environment {
-        AWS_REGION = "ap-south-1"
-        CLUSTER_NAME = "bluegreen-eks"
-        NAMESPACE = "production"
+    AWS_REGION = "ap-south-1"
+    CLUSTER_NAME = "bluegreen-eks"
+    NAMESPACE = "production"
 
-        image: ${DOCKER_IMAGE}:${IMAGE_TAG}
-    }
+    DOCKER_IMAGE = "vikash3117/sample-app"
+    IMAGE_TAG = "${BUILD_NUMBER}"
+  }
 
     stages {
 
@@ -113,10 +114,10 @@ pipeline {
                 credentialsId: 'AWS-Creds']
          ]) {
 
-             sh '''
-              aws eks update-kubeconfig \
-                --region ap-south-1 \
-                --name bluegreen-eks
+             sh """
+aws eks update-kubeconfig \
+  --region ${AWS_REGION} \
+  --name ${CLUSTER_NAME}
 
 cat <<EOF | kubectl apply -f -
 
@@ -124,11 +125,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: app-green
-  namespace: production
+  namespace: ${NAMESPACE}
 
 spec:
   replicas: 2
-
   selector:
     matchLabels:
       app: sample-app
@@ -144,7 +144,6 @@ spec:
       containers:
       - name: sample-app
         image: ${DOCKER_IMAGE}:${IMAGE_TAG}
-
         ports:
         - containerPort: 8080
 
@@ -153,7 +152,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: sample-service
-  namespace: production
+  namespace: ${NAMESPACE}
 
 spec:
   selector:
@@ -165,7 +164,7 @@ spec:
     targetPort: 8080
 
 EOF
-            '''
+"""
         }
     }
 }
